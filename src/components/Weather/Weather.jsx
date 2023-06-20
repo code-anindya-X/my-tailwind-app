@@ -3,6 +3,7 @@ import { getWeatherDetails } from "../../Shared/Api/WeatherApi";
 import Input from "../../Shared/Input";
 import Button from "../../Shared/Button";
 import moment from "moment/moment";
+import Loader from "../../Shared/Loader";
 
 const Weather = () => {
   const [city, setCity] = useState("");
@@ -12,22 +13,26 @@ const Weather = () => {
 
   const [cityname, setCityname] = useState("");
 
+  const [loader, setLoader] = useState(true);
+
   const getCurrentWeatherHandler = async () => {
     const weatherDetails = await getWeatherDetails(cityname);
-    const weatherData = await weatherDetails.data;
-    console.log(weatherData.location);
-    setCity(weatherData.location.name);
-    setRegion(weatherData.location.region);
-    setCountry(weatherData.location.country);
+    const weatherData = (await weatherDetails.data) || {};
+    console.log(weatherData?.location);
+    setCity(weatherData?.location?.name);
+    setRegion(weatherData?.location?.region);
+    setCountry(weatherData?.location?.country);
     const customTime = moment
-      .unix(weatherData.location.localtime_epoch)
+      .unix(weatherData?.location?.localtime_epoch)
       .format("MMMM Do YYYY, h:mm:ss a");
     setTime(customTime);
+    setLoader(false);
   };
 
   const cityNameHandler = (event) => {
     console.log(event.target.value);
     setCityname(event.target.value);
+
   };
   return (
     <>
@@ -37,7 +42,7 @@ const Weather = () => {
           className="w-80"
           onChange={cityNameHandler}
           type="text"
-          value= {cityname}
+          value={cityname}
         />
       </div>
 
@@ -45,11 +50,17 @@ const Weather = () => {
         <Button buttonname="Submit" onClick={getCurrentWeatherHandler} />
       </div>
 
-      <div className="flex justify-around items-center my-10 border rounded-sm mx-5 py-8 px-5">
-        <div>City:- {city} </div>
-        <div>Region:- {region} </div>
-        <div>Time:- {time} </div>
-        <div>Country:- {country} </div>
+      <div className="flex justify-around items-center">
+        {loader ? (
+          <Loader />
+        ) : (
+          <div className="border rounded-sm my-10 mx-5 py-8 px-5">
+            <div>City:- {city} </div>
+            <div>Region:- {region} </div>
+            <div>Time:- {time} </div>
+            <div>Country:- {country} </div>
+          </div>
+        )}
       </div>
 
       {/* <button onClick={getCurrentWeatherHandler} className="btn btn-primary"> Get Weather</button> */}
